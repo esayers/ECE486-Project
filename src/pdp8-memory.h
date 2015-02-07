@@ -31,8 +31,7 @@ namespace Pdp8 {
     class Memory
     {
     public:
-        Memory();
-        Memory(unsigned int);
+        Memory(unsigned int size = Pdp8::mem::size);
         ~Memory();
 
         int store(unsigned short, short);

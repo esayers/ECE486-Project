@@ -19,19 +19,6 @@ Pdp8::Memory::Memory(unsigned int size) : mem_size(size)
     }
 }
 
-// Default Constructor
-Pdp8::Memory::Memory() : mem_size(Pdp8::mem::size)
-{
-    mem = new Pdp8::Word[mem_size];
-    logfile = Pdp8::mem::default_logfile;
-
-    for (int i = 0; i < mem_size;++i)
-    {
-        mem[i].access = false;
-        mem[i].value = 0;
-    }
-}
-
 // Destructor
 Pdp8::Memory::~Memory()
 {
@@ -96,7 +83,7 @@ int Pdp8::Memory::store(unsigned short address, short value)
 void Pdp8::Memory::mem_put(unsigned short address, short value)
 {
     // Check that address is valid
-    if (address > mem_size)
+    if (address >= mem_size)
     {
         throw std::out_of_range ("Array out of bounds");
         return;
@@ -111,7 +98,7 @@ void Pdp8::Memory::mem_put(unsigned short address, short value)
 
 short Pdp8::Memory::mem_get(unsigned short address)
 {
-    if (address > mem_size)
+    if (address >= mem_size)
     {
         throw std::out_of_range ("Array out of bounds");
         return 0;
@@ -122,8 +109,8 @@ short Pdp8::Memory::mem_get(unsigned short address)
 
 void Pdp8::Memory::log(unsigned short address, Pdp8::mem::log_type type)
 {
-    std::ofstream file (logfile, std::ios::app);
     
+    std::ofstream file (logfile, std::ios::app);
     if (file.is_open())
     {   
         file << type << " " << std::oct << address << std::endl; 
