@@ -15,7 +15,6 @@
 Pdp8::Word::Word()
 {
     access = false;
-    value = 0;
 }
 
 // Constructor for class Memory
@@ -59,10 +58,10 @@ int Pdp8::Memory::dump_memory(std::ostream& out) const
 }
 
 
-// Load memory from file
+// Load memory from hex file
 // INPUT: file name to load from
 // OUTPUT: number of memory locations loaded
-int Pdp8::Memory::load_from_file(std::string filename)
+int Pdp8::Memory::load_from_hex(std::string filename)
 {
     std::ifstream file (filename);  // Open filename as file
     std::string line;               // String for getline
@@ -144,6 +143,82 @@ int Pdp8::Memory::load_from_file(std::string filename)
     
     return count;
 }
+
+// Load memory from octal file
+// INPUT: file name to load from
+// OUTPUT: number of memory locations loaded
+int Pdp8::Memory::load_from_oct(std::string filename)
+{
+    std::ifstream file (filename);  // Open filename as file
+    std::string line1, line2;       // String for getline
+    int count = 0;                  // Count of memory locations
+    unsigned short address = 0;     // Current address 
+
+    Pdp8::Word *new_mem = new Pdp8::Word[mem_size];
+
+    if (file.is_open())
+    {
+        while (std::getline(file, line1) && std::getline(file, line2))
+        {
+            unsigned long conv1, conv2;
+
+            try
+            {
+                conv1 = std::stoul(line1, NULL, 8);
+                conv2 = std::stoul(line2, NULL, 8);    
+            }
+            catch (...)
+            {
+                file.close();
+                delete [] new_mem;
+                throw;
+            }
+
+            bool is_address = conv1 & (1 << 6);
+            
+            // remove upper bits
+            conv1 &= ~((~0u) << 6);
+            conv2 &= ~((~0u) << 6);
+
+            unsigned short value = (conv1 << 6) | conv2;
+
+            if (is_address)
+            {
+                if (value >= mem_size)
+                {
+                    file.close();
+                    delete [] new_mem;
+                    throw std::out_of_range ("Array out of bounds");
+                }
+                else
+                {
+                    address = value;
+                }
+            }
+            else
+            {
+                if (address >= mem_size)
+                {
+                    file.close();
+                    delete [] new_mem;
+                    throw std::out_of_range("Array out of bounds");
+                }
+                else
+                {
+                    new_mem[address].value = value;
+                    new_mem[address++].access = true;
+                    ++count;
+                }
+            }
+        }
+        file.close();
+    }
+    delete [] mem;
+    mem = new_mem;
+    return count;
+}
+
+
 
 // Store value in memory and log
 // INPUT: address and value

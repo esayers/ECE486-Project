@@ -7,43 +7,71 @@
 int main (int argc, char **argv)
 {
     int c;
+    bool vflg = false;
+    bool oflg = false;
+    int ferr;
+    std::string filename;
     Pdp8::Memory mm;
 
     // Process input arguments
-    opterr = 0; // Turn of option error messages
-    while ((c = getopt(argc, argv, "v:")) != -1)
+    opterr = 0; // Turn off option error messages
+    while ((c = getopt(argc, argv, "v:o:")) != -1)
     {
         switch(c)
         {
-        case 'v':
-            int count;
-            try
-            {
-                count = mm.load_from_file(optarg);
-            }
-            catch (...)
-            {
-                std::cerr << "Unable to load \"" << optarg << "\": invald file format" << std::endl;
-                return 0;
-            }
-
-            if (count == 0)
-            {
-                std::cerr << "File \"" << optarg << "\" does not exist or contains no data" << std::endl;
-            }
+        case 'v': // Load from hex file
+            vflg = true;
+            filename = optarg;
+            break;
+        case 'o': // Load from oct file
+            oflg = true;
+            filename = optarg;
             break;
         case '?': // Invalid argument
-            if (std::isprint(optopt))
+            if (optopt == 'o')
+                std::cerr << "Option -o requires an argument" << std::endl;
+            else if (optopt == 'v')
+                std::cerr << "Option -v reuires an argument" << std::endl;
+            else if (std::isprint(optopt))
                 std::cerr << "Unknown option: " << (char) optopt << std::endl;
             else
                 std::cerr << "Unknown option: 0x" << std::hex << optopt << std::endl;
-            break;
         default:
-            abort();
+            return 0;
         }
     }
 
-    //mm.load_from_file("add01.mem");
-    mm.store(0, 100);
+    // Handle -o and -v flags
+    if (oflg && vflg)
+    {
+        std::cerr << "Options -o and -v are mutually exclusive" << std::endl;
+    }
+    else
+    {
+        try
+        {
+            if (oflg)
+            {
+                ferr = mm.load_from_oct(filename);
+            }
+            else if (vflg)
+            {
+                ferr = mm.load_from_hex(filename);
+            }
+
+            if (ferr == 0)
+            {
+                std::cerr << "File \"" << filename << "\" does not exist or contains no data" << std::endl;
+            }
+        }
+        catch (...)
+        {
+            std::cerr << "Unable to load \"" << optarg << "\": invald file format" << std::endl;
+            return 0;
+        }
+    }
+
     mm.dump_memory(std::cout);
+    
+    return 0;
 }

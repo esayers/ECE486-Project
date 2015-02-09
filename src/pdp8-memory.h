@@ -48,7 +48,8 @@ namespace Pdp8
         reg12 fetch(unsigned short);
 
         int dump_memory(std::ostream&) const;
-        int load_from_file(std::string);
+        int load_from_hex(std::string);
+        int load_from_oct(std::string);
     private:
         const int mem_size;
         Pdp8::Word *mem; 
