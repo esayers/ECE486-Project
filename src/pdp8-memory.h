@@ -40,14 +40,14 @@ namespace Pdp8
     class Memory
     {
     public:
-        Memory(unsigned int size = Pdp8::mem::size);
+        Memory();
         ~Memory();
 
-        void store(reg12, reg12);
-        reg12 load(reg12);
-        reg12 fetch(reg12);
+        void store(unsigned short, reg12);
+        reg12 load(unsigned short);
+        reg12 fetch(unsigned short);
 
-        int dump_memory(std::ostream&);
+        int dump_memory(std::ostream&) const;
         int load_from_file(std::string);
     private:
         const int mem_size;
@@ -56,9 +56,9 @@ namespace Pdp8
         std::string logfile_name;
         std::ofstream logfile;
 
-        void mem_put(reg12, reg12);
-        reg12 mem_get(reg12);
-        void log(reg12, Pdp8::mem::log_type);
+        void mem_put(unsigned short, reg12);
+        reg12 mem_get(unsigned short);
+        void log(unsigned short, Pdp8::mem::log_type);
     };
 }
 
