@@ -2,17 +2,21 @@
  *  ECE 486 Project
  */
 
+
+#ifndef PDP8_MEMORY_H
+#define PDP8_MEMORY_H
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <string>
 #include <stdexcept>
-
-#ifndef PDP8_MEMORY_H
-#define PDP8_MEMORY_H
+#include <bitset>
 
 namespace Pdp8 
 {
+    typedef std::bitset<12> reg12;
+
     namespace mem
     {
         const int size = 4096;
@@ -29,7 +33,7 @@ namespace Pdp8
     struct Word
     {
         Word();
-        short value;
+        reg12 value;
         bool access;
     };
 
@@ -39,9 +43,9 @@ namespace Pdp8
         Memory(unsigned int size = Pdp8::mem::size);
         ~Memory();
 
-        void store(unsigned short, short);
-        short load(unsigned short);
-        short fetch(unsigned short);
+        void store(reg12, reg12);
+        reg12 load(reg12);
+        reg12 fetch(reg12);
 
         int dump_memory(std::ostream&);
         int load_from_file(std::string);
@@ -52,9 +56,9 @@ namespace Pdp8
         std::string logfile_name;
         std::ofstream logfile;
 
-        void mem_put(unsigned short, short);
-        short mem_get(unsigned short);
-        void log(unsigned short, Pdp8::mem::log_type);
+        void mem_put(reg12, reg12);
+        reg12 mem_get(reg12);
+        void log(reg12, Pdp8::mem::log_type);
     };
 }
 

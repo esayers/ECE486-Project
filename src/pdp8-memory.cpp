@@ -50,7 +50,7 @@ int Pdp8::Memory::dump_memory(std::ostream& out)
         if (mem[i].access)
         {
             out << std::setw(4) << i << ": ";
-            out << std::setw(4) << mem[i].value << std::endl;
+            out << std::setw(4) << mem[i].value.to_ulong() << std::endl;
             ++count;
         }
     }
@@ -148,7 +148,7 @@ int Pdp8::Memory::load_from_file(std::string filename)
 // Store value in memory and log
 // INPUT: address and value
 // OUTPUT: logged as a write
-void Pdp8::Memory::store(unsigned short address, short value)
+void Pdp8::Memory::store(Pdp8::reg12 address, Pdp8::reg12 value)
 {
     mem_put(address, value);
     log(address, Pdp8::mem::data_write); 
@@ -157,9 +157,9 @@ void Pdp8::Memory::store(unsigned short address, short value)
 // Load value from memory and log
 // INPUT: address
 // OUTPUT: value returned and logged as a read
-short Pdp8::Memory::load(unsigned short address)
+Pdp8::reg12 Pdp8::Memory::load(Pdp8::reg12 address)
 {
-   short rv = mem_get(address);
+   Pdp8::reg12 rv = mem_get(address);
    log(address, Pdp8::mem::data_read);
    return rv;
 }
@@ -167,9 +167,9 @@ short Pdp8::Memory::load(unsigned short address)
 // Fetch instruction from memory and log
 // INPUT: address
 // OUTPUT: instruction returned and logged as a fetch
-short Pdp8::Memory::fetch(unsigned short address)
+Pdp8::reg12 Pdp8::Memory::fetch(Pdp8::reg12 address)
 {
-    short rv = mem_get(address);
+    Pdp8::reg12 rv = mem_get(address);
     log(address, Pdp8::mem::inst_fetch);
     return rv;
 }
@@ -181,44 +181,42 @@ short Pdp8::Memory::fetch(unsigned short address)
 // Put value into memory
 // INPUT: address and value
 // OUTPUT: None
-void Pdp8::Memory::mem_put(unsigned short address, short value)
+void Pdp8::Memory::mem_put(Pdp8::reg12 address, Pdp8::reg12 value)
 {
     // Check that address is valid
-    if (address >= mem_size)
+    if (address.to_ulong() >= mem_size)
     {
         throw std::out_of_range ("Array out of bounds");
         return;
     }
 
     // Insert value at address
-    mem[address].value = value;
-    mem[address].access = true;
-
-    return;
+    mem[address.to_ulong()].value = value;
+    mem[address.to_ulong()].access = true;
 }
 
 // Get value from memory
 // INPUT: address
 // OUTPUT: value returned
-short Pdp8::Memory::mem_get(unsigned short address)
+Pdp8::reg12 Pdp8::Memory::mem_get(Pdp8::reg12 address)
 {
-    if (address >= mem_size)
+    if (address.to_ulong() >= mem_size)
     {
         throw std::out_of_range ("Array out of bounds");
         return 0;
     }
 
-    return mem[address].value;
+    return mem[address.to_ulong()].value.to_ulong();
 }
 
 // Log memory access
 // INPUT: address and type
 // OUTPUT: none
-void Pdp8::Memory::log(unsigned short address, Pdp8::mem::log_type type)
+void Pdp8::Memory::log(Pdp8::reg12 address, Pdp8::mem::log_type type)
 {
     
     if (logfile.is_open())
     {   
-        logfile << type << " " << std::oct << address << std::endl; 
+        logfile << type << " " << std::oct << address.to_ulong() << std::endl; 
     }
 }
