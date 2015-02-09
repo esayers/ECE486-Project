@@ -6,6 +6,11 @@
 
 #include "pdp8-memory.h"
 
+
+//
+// Public functions
+//
+
 // Constructor for struct Word
 Pdp8::Word::Word()
 {
@@ -14,6 +19,7 @@ Pdp8::Word::Word()
 }
 
 // Constructor for class Memory
+// INPUT: number of memory locations to create
 Pdp8::Memory::Memory(unsigned int size) : mem_size(size)
 {
     mem = new Pdp8::Word[mem_size];
@@ -139,12 +145,18 @@ int Pdp8::Memory::load_from_file(std::string filename)
     return count;
 }
 
+// Store value in memory and log
+// INPUT: address and value
+// OUTPUT: logged as a write
 void Pdp8::Memory::store(unsigned short address, short value)
 {
     mem_put(address, value);
     log(address, Pdp8::mem::data_write); 
 }
 
+// Load value from memory and log
+// INPUT: address
+// OUTPUT: value returned and logged as a read
 short Pdp8::Memory::load(unsigned short address)
 {
    short rv = mem_get(address);
@@ -152,6 +164,9 @@ short Pdp8::Memory::load(unsigned short address)
    return rv;
 }
 
+// Fetch instruction from memory and log
+// INPUT: address
+// OUTPUT: instruction returned and logged as a fetch
 short Pdp8::Memory::fetch(unsigned short address)
 {
     short rv = mem_get(address);
@@ -159,6 +174,13 @@ short Pdp8::Memory::fetch(unsigned short address)
     return rv;
 }
 
+//
+// Private functions
+//
+
+// Put value into memory
+// INPUT: address and value
+// OUTPUT: None
 void Pdp8::Memory::mem_put(unsigned short address, short value)
 {
     // Check that address is valid
@@ -175,6 +197,9 @@ void Pdp8::Memory::mem_put(unsigned short address, short value)
     return;
 }
 
+// Get value from memory
+// INPUT: address
+// OUTPUT: value returned
 short Pdp8::Memory::mem_get(unsigned short address)
 {
     if (address >= mem_size)
@@ -186,6 +211,9 @@ short Pdp8::Memory::mem_get(unsigned short address)
     return mem[address].value;
 }
 
+// Log memory access
+// INPUT: address and type
+// OUTPUT: none
 void Pdp8::Memory::log(unsigned short address, Pdp8::mem::log_type type)
 {
     
