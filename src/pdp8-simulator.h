@@ -41,6 +41,13 @@ namespace Pdp8
            bool             zero;
            unsigned short   offset;
            reg9             micro;
+           unsigned short   page;
+        };
+
+        struct Addr
+        {
+            unsigned short mar;
+            reg12 mbr;
         };
     };
     class Simulator
@@ -55,6 +62,9 @@ namespace Pdp8
         int dump_memory(std::ostream& = std::cout) const;
         void print_stats(std::ostream& = std::cout) const;
         void start(unsigned short = 0200);
+        void set_debug(bool);
+        void set_pause(bool);
+        void set_switches(Pdp8::reg12);
 
     private:
         Memory *  memory;
@@ -62,9 +72,15 @@ namespace Pdp8
         reg12 ac;
         reg12 pc;
         bool  l;
+        reg12 switches;
+        bool debug;
+        bool pause;
 
         Sim::Inst decode(reg12);
         bool process_instruction();
+        bool process_micro(Pdp8::reg9);
+        Pdp8::Sim::Addr get_address(Pdp8::Sim::Inst);
+        void print_debug(void);
     };
 };
 #endif
