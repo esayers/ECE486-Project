@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <cctype>
 #include <cstdlib>
-#include "pdp8-memory.h"
+#include "pdp8-simulator.h"
 
 void printHelp(std::string);
 
@@ -17,7 +17,7 @@ int main (int argc, char **argv)
 
     std::string filename;
     std::string tracefile;
-    Pdp8::Memory mm;
+    Pdp8::Simulator sim;
 
     // Process input arguments
     opterr = 0; // Turn off option error messages
@@ -71,11 +71,11 @@ int main (int argc, char **argv)
             int ferr = 0; // To store number of times memory is touched
             if (oflg)
             {
-                ferr = mm.load_from_oct(filename);
+                ferr = sim.load_from_oct(filename);
             }
             else if (vflg)
             {
-                ferr = mm.load_from_hex(filename);
+                ferr = sim.load_from_hex(filename);
             }
 
             if (ferr == 0)
@@ -98,11 +98,11 @@ int main (int argc, char **argv)
     // Handle -t flag
     if (tflg)
     {
-        mm.set_tracefile(tracefile);
+        sim.set_tracefile(tracefile);
     }
 
-    mm.dump_memory(std::cout);
-    
+    sim.dump_memory();
+
     return 0;
 }
 
