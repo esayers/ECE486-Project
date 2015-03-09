@@ -44,11 +44,6 @@ namespace Pdp8
            unsigned short   page;
         };
 
-        struct Addr
-        {
-            unsigned short mar;
-            reg12 mbr;
-        };
     };
     class Simulator
     {
@@ -76,10 +71,10 @@ namespace Pdp8
         bool debug;
         bool pause;
 
-        Sim::Inst decode(reg12);
+        Sim::Inst decode(reg12, unsigned short);
         bool process_instruction();
         bool process_micro(Pdp8::reg9);
-        Pdp8::Sim::Addr get_address(Pdp8::Sim::Inst);
+        unsigned short get_address(Pdp8::Sim::Inst);
         void print_debug(void);
     };
 };

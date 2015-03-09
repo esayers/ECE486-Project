@@ -106,8 +106,9 @@ int main (int argc, char **argv)
     }
     else
     {
-        std::cerr << "Either option -o or -v must be present" << std::endl;;
+        std::cerr << "Either option -o or -v must be present" << std::endl;
         printHelp(argv[0]);
+        return 0;
     }
 
     // Handle -t flag

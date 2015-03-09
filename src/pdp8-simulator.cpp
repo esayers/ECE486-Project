@@ -20,6 +20,8 @@ Pdp8::Simulator::Simulator()
         stats.ops[i] = 0;
     }
     switches = 0;
+    ac = 0;
+    l = 0;
     debug = false;
     pause = false;
 }
@@ -78,7 +80,8 @@ void Pdp8::Simulator::print_stats(std::ostream& out) const
     out << "ISZ Op   : " << stats.ops[Pdp8::Sim::ISZ] << std::endl;
     out << "DCA Ops  : " << stats.ops[Pdp8::Sim::DCA] << std::endl;
     out << "JMS Ops  : " << stats.ops[Pdp8::Sim::JMS] << std::endl;
-    out << "I/O Ops  : " << stats.ops[Pdp8::Sim::JMP] << std::endl;
+    out << "JMP Ops  : " << stats.ops[Pdp8::Sim::JMP] << std::endl;
+    out << "I/O Ops  : " << stats.ops[Pdp8::Sim::IOT] << std::endl;
     out << "Micro Ops: " << stats.ops[Pdp8::Sim::OPR] << std::endl;
     out << "Total    : " << insts  << std::endl;
 }
@@ -130,7 +133,7 @@ void Pdp8::Simulator::set_switches(Pdp8::reg12 sw)
 // Decode instruction
 // INPUT: 12 bit instruction to decode
 // OUPTUP: instruction decoded in struct
-Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst)
+Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst, unsigned short pc)
 {
     Pdp8::Sim::Inst rv;
 
@@ -139,7 +142,7 @@ Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst)
     rv.zero = inst[7];
     rv.offset = inst.to_ulong() & 0x7Fu;
     rv.micro = inst.to_ulong() & 0x1FF;
-    rv.page = inst.to_ulong() >> 7;
+    rv.page = pc >> 7;
 
     return rv;
 }
@@ -149,32 +152,60 @@ Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst)
 // OUTPUT: True if not halted, false if halted
 bool Pdp8::Simulator::process_instruction()
 {
-    Pdp8::Sim::Inst inst = decode(memory->fetch(pc.to_ulong()));
-    Pdp8::Sim::Addr addr;
-    bool halt = false;
+    Pdp8::Sim::Inst inst = decode(memory->fetch(pc.to_ulong()), pc.to_ulong());
+    unsigned short  mar;
+    Pdp8::reg12     mbr;
+    std::bitset<13> iac;
+    bool            halt = false;
 
     stats.ops[inst.op] += 1;
+    pc = pc.to_ulong() + 1;
 
-    
-
-
-    
     switch (inst.op)
     {
     case (Pdp8::Sim::AND):
-        addr = get_address(inst);
-        ac &= addr.mbr;
+        mar = get_address(inst);
+        mbr = memory->load(mar);
+        ac &= mbr;
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::TAD):
+        mar = get_address(inst);
+        mbr = memory->load(mar);
+        iac = ac.to_ulong();
+        iac[12] = static_cast<unsigned int>(l);
+        iac = iac.to_ulong() + mbr.to_ulong();
+        ac = iac.to_ulong() & 0xFFF;
+        l = iac[12];
+        stats.clocks += 2;
         break;
     case (Pdp8::Sim::ISZ):
+        mar = get_address(inst);
+        mbr = memory->load(mar);
+        mbr = mbr.to_ulong() + 1;
+        memory->store(mar, mbr);
+        if (mbr.to_ulong() == 0)
+        {
+            pc = pc.to_ulong() + 1;
+        }
+        stats.clocks += 2;
         break;
     case (Pdp8::Sim::DCA):
+        mar = get_address(inst);
+        memory->store(mar, ac);
+        ac = 0;
+        stats.clocks += 2;
         break;
     case (Pdp8::Sim::JMS):
+        mar = get_address(inst);
+        memory->store(mar, pc);
+        pc = mar + 1;
+        stats.clocks += 2; 
         break;
     case (Pdp8::Sim::JMP):
+        mar = get_address(inst);
+        pc = mar;
+        stats.clocks += 1;
         break;
     case (Pdp8::Sim::IOT):
         break;
@@ -186,7 +217,6 @@ bool Pdp8::Simulator::process_instruction()
         break;    
     }
     
-    pc = pc.to_ulong() + 1;
 
     return halt;
 }
@@ -353,10 +383,10 @@ bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
 // Get effective address
 // INPUT: Instruction to get address from
 // OUTPUT: Address
-Pdp8::Sim::Addr Pdp8::Simulator::get_address(Pdp8::Sim::Inst inst)
+unsigned short Pdp8::Simulator::get_address(Pdp8::Sim::Inst inst)
 {
     unsigned short page;
-    Pdp8::Sim::Addr rv;
+    unsigned short addr;
 
     // Set page
     if (inst.zero)
@@ -364,29 +394,28 @@ Pdp8::Sim::Addr Pdp8::Simulator::get_address(Pdp8::Sim::Inst inst)
     else
         page = 0;
 
-    rv.mar = (page << 7) | inst.offset;
+    addr = (page << 7) | inst.offset;
 
     // Get indirect address
     if(inst.ind)
     {
-        if (rv.mar >= 010 && rv.mar <= 017)
+        if (addr >= 010 && addr <= 017)
         {
-            Pdp8::reg12 ival = memory->load(rv.mar);
+            Pdp8::reg12 ival = memory->load(addr);
             ival = ival.to_ulong() + 1;
-            memory->store(rv.mar, ival);
+            memory->store(addr, ival);
             stats.clocks += 2;
-            rv.mar = ival.to_ulong();
+            addr = ival.to_ulong();
         }
         else
         {
-            rv.mar = memory->load(rv.mar).to_ulong();
+            addr = memory->load(addr).to_ulong();
         }
+    stats.clocks += 1;
     }
 
     // Get data from memory
-    rv.mbr = memory->load(rv.mar);
-    stats.clocks += 1;
-    return rv;
+    return addr;
 }
 
 // Print debug information
