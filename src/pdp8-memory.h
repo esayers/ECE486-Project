@@ -17,6 +17,7 @@
 namespace Pdp8
 {
     typedef std::bitset<12> reg12;
+    typedef std::bitset<9> reg9;
 
     namespace mem
     {
