@@ -1,4 +1,5 @@
-/*  pdp8-memory *  Edward Sayers
+/*  pdp8-memory
+ *  Edward Sayers
  *  ECE 486 Project
  */
 
@@ -13,7 +14,7 @@
 #include <stdexcept>
 #include <bitset>
 
-namespace Pdp8 
+namespace Pdp8
 {
     typedef std::bitset<12> reg12;
 
@@ -50,9 +51,11 @@ namespace Pdp8
         int dump_memory(std::ostream&) const;
         int load_from_hex(std::string);
         int load_from_oct(std::string);
+
+        void set_tracefile(std::string);
     private:
-        const int mem_size;
-        Pdp8::Word *mem; 
+        const unsigned int mem_size;
+        Pdp8::Word *mem;
 
         std::string logfile_name;
         std::ofstream logfile;

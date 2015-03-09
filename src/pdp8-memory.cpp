@@ -23,8 +23,7 @@ Pdp8::Memory::Memory() : mem_size(Pdp8::mem::size)
 {
     mem = new Pdp8::Word[mem_size];
 
-    logfile_name = Pdp8::mem::default_logfile;
-    logfile.open(logfile_name, std::ios::app);
+    set_tracefile(Pdp8::mem::default_logfile);
 }
 
 // Destructor for class Memory
@@ -44,7 +43,7 @@ int Pdp8::Memory::dump_memory(std::ostream& out) const
     // Setup stream format
     out << std::oct << std::setfill('0') << std::right;
 
-    for (int i = 0; i < mem_size; ++i)
+    for (unsigned int i = 0; i < mem_size; ++i)
     {
         if (mem[i].access)
         {
@@ -53,7 +52,7 @@ int Pdp8::Memory::dump_memory(std::ostream& out) const
             ++count;
         }
     }
-    
+
     return count;
 }
 
@@ -66,7 +65,7 @@ int Pdp8::Memory::load_from_hex(std::string filename)
     std::ifstream file (filename);  // Open filename as file
     std::string line;               // String for getline
     int count = 0;                  // Count of memory locations
-    unsigned short address = 0;     // Current address 
+    unsigned short address = 0;     // Current address
 
     Pdp8::Word *new_mem = new Pdp8::Word[mem_size];
 
@@ -74,7 +73,7 @@ int Pdp8::Memory::load_from_hex(std::string filename)
     {
         while (std::getline(file, line))
         {
-    
+
             if (line.length()) // Ignore blank lines
             {
                 // Lines starting with "@" specify a starting address
@@ -115,7 +114,7 @@ int Pdp8::Memory::load_from_hex(std::string filename)
                         file.close();
                         delete [] new_mem;
                         throw std::out_of_range ("Array out of bounds");
-                    } 
+                    }
 
                     try
                     {
@@ -140,7 +139,7 @@ int Pdp8::Memory::load_from_hex(std::string filename)
 
     delete [] mem;
     mem = new_mem;
-    
+
     return count;
 }
 
@@ -152,7 +151,7 @@ int Pdp8::Memory::load_from_oct(std::string filename)
     std::ifstream file (filename);  // Open filename as file
     std::string line1, line2;       // String for getline
     int count = 0;                  // Count of memory locations
-    unsigned short address = 0;     // Current address 
+    unsigned short address = 0;     // Current address
 
     Pdp8::Word *new_mem = new Pdp8::Word[mem_size];
 
@@ -165,7 +164,7 @@ int Pdp8::Memory::load_from_oct(std::string filename)
             try
             {
                 conv1 = std::stoul(line1, NULL, 8);
-                conv2 = std::stoul(line2, NULL, 8);    
+                conv2 = std::stoul(line2, NULL, 8);
             }
             catch (...)
             {
@@ -175,7 +174,7 @@ int Pdp8::Memory::load_from_oct(std::string filename)
             }
 
             bool is_address = conv1 & (1 << 6);
-            
+
             // remove upper bits
             conv1 &= ~((~0u) << 6);
             conv2 &= ~((~0u) << 6);
@@ -226,7 +225,7 @@ int Pdp8::Memory::load_from_oct(std::string filename)
 void Pdp8::Memory::store(unsigned short address, Pdp8::reg12 value)
 {
     mem_put(address, value);
-    log(address, Pdp8::mem::data_write); 
+    log(address, Pdp8::mem::data_write);
 }
 
 // Load value from memory and log
@@ -247,6 +246,13 @@ Pdp8::reg12 Pdp8::Memory::fetch(unsigned short address)
     Pdp8::reg12 rv = mem_get(address);
     log(address, Pdp8::mem::inst_fetch);
     return rv;
+}
+
+void Pdp8::Memory::set_tracefile(std::string filename)
+{
+    logfile.close();
+    logfile_name = filename;
+    logfile.open(filename, std::ios::app);
 }
 
 //
@@ -289,9 +295,9 @@ Pdp8::reg12 Pdp8::Memory::mem_get(unsigned short address)
 // OUTPUT: none
 void Pdp8::Memory::log(unsigned short address, Pdp8::mem::log_type type)
 {
-    
+
     if (logfile.is_open())
-    {   
-        logfile << type << " " << std::oct << address << std::endl; 
+    {
+        logfile << type << " " << std::oct << address << std::endl;
     }
 }

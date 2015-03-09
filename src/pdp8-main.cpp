@@ -4,18 +4,24 @@
 #include <cstdlib>
 #include "pdp8-memory.h"
 
+void printHelp(std::string);
+
 int main (int argc, char **argv)
 {
     int c;
+
+    // Input flags
     bool vflg = false;
     bool oflg = false;
-    int ferr;
+    bool tflg = false;
+
     std::string filename;
+    std::string tracefile;
     Pdp8::Memory mm;
 
     // Process input arguments
     opterr = 0; // Turn off option error messages
-    while ((c = getopt(argc, argv, "v:o:")) != -1)
+    while ((c = getopt(argc, argv, "v:o:t:")) != -1)
     {
         switch(c)
         {
@@ -27,16 +33,28 @@ int main (int argc, char **argv)
             oflg = true;
             filename = optarg;
             break;
+        case 't': // Tracefile name
+            tflg = true;
+            tracefile = optarg;
+            break;
         case '?': // Invalid argument
-            if (optopt == 'o')
-                std::cerr << "Option -o requires an argument" << std::endl;
-            else if (optopt == 'v')
-                std::cerr << "Option -v reuires an argument" << std::endl;
-            else if (std::isprint(optopt))
-                std::cerr << "Unknown option: " << (char) optopt << std::endl;
-            else
-                std::cerr << "Unknown option: 0x" << std::hex << optopt << std::endl;
+            switch (optopt)
+            {    
+            case 'o':
+            case 'v':
+            case 't':
+                std::cerr << "Option -" << (char) optopt << " requires an argument" << std::endl;
+                break;
+            default:
+                if (std::isprint(optopt))
+                    std::cerr << "Unknown option: " << (char) optopt << std::endl;
+                else
+                    std::cerr << "Unknown option: 0x" << std::hex << optopt << std::endl;
+                printHelp(argv[0]);
+                break;
+            }
         default:
+            printHelp(argv[0]);
             return 0;
         }
     }
@@ -46,10 +64,11 @@ int main (int argc, char **argv)
     {
         std::cerr << "Options -o and -v are mutually exclusive" << std::endl;
     }
-    else
+    else if (oflg | vflg)
     {
         try
         {
+            int ferr = 0; // To store number of times memory is touched
             if (oflg)
             {
                 ferr = mm.load_from_oct(filename);
@@ -66,12 +85,32 @@ int main (int argc, char **argv)
         }
         catch (...)
         {
-            std::cerr << "Unable to load \"" << optarg << "\": invald file format" << std::endl;
+            std::cerr << "Unable to load \"" << filename << "\": invald file format" << std::endl;
             return 0;
         }
+    }
+    else
+    {
+        std::cerr << "Either option -o or -v must be present" << std::endl;;
+        printHelp(argv[0]);
+    }
+
+    // Handle -t flag
+    if (tflg)
+    {
+        mm.set_tracefile(tracefile);
     }
 
     mm.dump_memory(std::cout);
     
     return 0;
+}
+
+void printHelp(std::string filename)
+{
+    std::cerr << "Usage: " << filename << " [options]" << std::endl;
+    std::cerr << "  options:" << std::endl;
+    std::cerr << "-v <filename>     Loads a hex formated memory file" << std::endl;
+    std::cerr << "-o <filename>     Loads an octal formated memory file" << std::endl;
+    std::cerr << "-t <filename>     Specifies the filename for the tracefile output" << std::endl;
 }
