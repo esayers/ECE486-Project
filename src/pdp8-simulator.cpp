@@ -155,7 +155,7 @@ bool Pdp8::Simulator::process_instruction()
     Pdp8::Sim::Inst inst = decode(memory->fetch(pc.to_ulong()), pc.to_ulong());
     unsigned short  mar;
     Pdp8::reg12     mbr;
-    std::bitset<13> iac;
+    std::bitset<13> lac;
     bool            halt = false;
 
     stats.ops[inst.op] += 1;
@@ -172,11 +172,11 @@ bool Pdp8::Simulator::process_instruction()
     case (Pdp8::Sim::TAD):
         mar = get_address(inst);
         mbr = memory->load(mar);
-        iac = ac.to_ulong();
-        iac[12] = static_cast<unsigned int>(l);
-        iac = iac.to_ulong() + mbr.to_ulong();
-        ac = iac.to_ulong() & 0xFFF;
-        l = iac[12];
+        lac = ac.to_ulong();
+        lac[12] = static_cast<unsigned int>(l);
+        lac = lac.to_ulong() + mbr.to_ulong();
+        ac = lac.to_ulong() & 0xFFF;
+        l = lac[12];
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::ISZ):
@@ -208,6 +208,8 @@ bool Pdp8::Simulator::process_instruction()
         stats.clocks += 1;
         break;
     case (Pdp8::Sim::IOT):
+        std::cerr << std::setfill('0') << "0" << std::oct;
+        std::cerr << std::setw(4) << std::oct << pc.to_ulong() - 1 <<": IOT Instructions are not supported" << std::endl << std::dec;
         break;
     case (Pdp8::Sim::OPR):
         halt = process_micro(inst.micro);
@@ -375,6 +377,8 @@ bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
     else
     {
         // Group 3
+        std::cerr << std::setfill('0') << "0" << std::oct;
+        std::cerr << std::setw(4) << pc.to_ulong() - 1 << ": Group 3 micro ops are not supported" << std::endl << std::dec;
     }
 
     return halt;
@@ -426,6 +430,7 @@ void Pdp8::Simulator::print_debug(void)
     // Do nothing if debug not set
     if (!debug)
         return;
+
     std::cerr << std::setfill('0');
     std::cerr << "PC: " << pc << " (0" << std::setw(4) << std::oct << pc.to_ulong() << ") ";
     std::cerr << "AC: " << ac << " (0" << std::setw(4) << std::oct << ac.to_ulong() << ") ";

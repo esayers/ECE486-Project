@@ -1,18 +1,44 @@
-/ Program : tad.as
-/ Desc: Tests tad
+/ tad.as
+/ test file for tad
 
 /
-/ Code Section
+/ program
 /
 
-*0200			/ start at address 0200
-Main,	cla cll iac	/ clear ac and l, inc ac
-	tad A		/ Add 1 to 01230
-	cla cll iac	/ clear ac and l, inc ac
-	tad B		/ add 1 to -1
-	hlt		/ halt
+*010
+AI,	0277
+
+*0200
+Main,	cla cll		/ clear ac and l
+	tad A		
+	tad B		/ -1 + 1
+	dca I AI	/ store
+	cll
+	tad A		
+	tad A		/ -1 -1
+	dca I AI	/ store
+	cll
+	tad D
+	tad D		/ largest + largest
+	dca I AI	/ store
+	cll
+	tad C		
+	tad C		/ smallest + smallest
+	dca I AI
+	cll
+	tad C
+	tad D		/ smallest + largest
+	dca I AI	/ store
+	
+	hlt
+	
+/
+/ data
+/
 
 *250
-A, 01230
-B, 07777
-$Main 			/ End of Program; Main is entry point
+A, 07777		/ -1
+B, 01			/ 1
+C, 04000		/ smallest negative
+D, 03777		/ largest positive	
+$Main

@@ -248,6 +248,9 @@ Pdp8::reg12 Pdp8::Memory::fetch(unsigned short address)
     return rv;
 }
 
+// Set file name of trace file
+// INPUT: filename
+// OUTPUT: none
 void Pdp8::Memory::set_tracefile(std::string filename)
 {
     logfile.close();
