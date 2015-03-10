@@ -29,7 +29,6 @@ Main,	cla cll		/ clear ac and l
 	tad C
 	tad D		/ smallest + largest
 	dca I AI	/ store
-	
 	hlt
 	
 /
