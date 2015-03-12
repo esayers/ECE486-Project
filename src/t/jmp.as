@@ -1,16 +1,13 @@
-/ jmp.as
-/ test file for jmp
+/ jmp.as - test file for jmp
+/ should increment and rotate right ac
+/ should run in 7 cycles
 
-/
-/ program
-/
-
-*010
+*010	/ Auto Increment
 AI,	0250
 *017
 AI2, 	0277
 
-*0200
+*0200	/ Program
 Main,	cla cll		/ clear ac and l
 	jmp A		/ jump to A
 	hlt		/ halt
@@ -19,10 +16,7 @@ Main,	cla cll		/ clear ac and l
 A,	iac		/ increment
 	jmp I B		/ jump indirect
 	hlt		/ hlt
-/
-/ data
-/
 
-*250
-B,	0203
+*250	/ Data
+B,	0203		/ address of rar
 $Main

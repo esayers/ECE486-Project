@@ -1,12 +1,9 @@
-/ Program : m2-osr.as
-/ Desc: Tests group 2 and subgroup or with switches
+/ m2-osr.as - Tests group 2 or with switches
+/ Should or accumulator with switch settings
+/ Should run in 3 cycles
 
-/
-/ Code Section
-/
-
-*0200			/ start at address 0200
-Main,	cla cll iac	/ clear ac and l
+*0200	/ program
+Main,	cla cll		/ clear ac and l
 	osr		/ or with switches
 	hlt		/ halt
-$Main 			/ End of Program; Main is entry point
+$Main

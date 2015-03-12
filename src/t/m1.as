@@ -1,11 +1,8 @@
-/ Program : m1.as
-/ Desc: Tests group 1 micro ops
+/ m1.as - Tests group 1 micro ops
+/ should manipulate the ac in the ways decribed below
+/ should run in 9 cycles
 
-/
-/ Code Section
-/
-
-*0200			/ start at address 0200
+*0200	/ Program
 Main,	cla cll		/ clear ac an l
 	cma cml		/ compliment ac and l
 	iac		/ increment ac
@@ -15,8 +12,7 @@ Main,	cla cll		/ clear ac an l
 	rtr		/ rotate two right
 	rtl		/ rotate two left
 	hlt		/ halt
-*0250
+
+*0250	/ Data
 A,	07777
-
-
-$Main 			/ End of Program; Main is entry point
+$Main 

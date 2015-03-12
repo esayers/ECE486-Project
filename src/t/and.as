@@ -1,5 +1,7 @@
-/ and.as
-/ test file for and
+/ and.as - test file for and
+/ The first two and instructions should result in 0. 
+/ The last should result in the value 05050.
+/ It should run in 26 cycles
 
 *010
 AI,	0277

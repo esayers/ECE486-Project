@@ -1,12 +1,7 @@
-/ Program : m2-2.as
-/ Desc: Tests group 2 or subgroup
-/ Should run 10 instructions in 10 cycles
+/ m2-2.as - Test 2 of group 2 OR subgroup
+/ Should run in 10 cycles
 
-/
-/ Code Section
-/
-
-*0200			/ start at address 0200
+*0200	/ program
 Main, 	cla cll		/ clear ac and l
 	sma cla		/ skip on minus then clear ac
 	cla cll cma  	/ should not be skipped
@@ -17,4 +12,4 @@ Main, 	cla cll		/ clear ac and l
 	snl		/ skip on non-zero link
 	cla cll cma	/ should not be skipped
 	hlt		/ halt
-$Main 			/ End of Program; Main is entry point
+$Main

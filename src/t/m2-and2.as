@@ -1,12 +1,7 @@
-/ Program : m2-and2.as
-/ Desc: Tests group 2 and subgroup
-/ Should run 7 instructions in 7 cycles
+/ m2-and2.as - Test 2 of group 2 AND subgroup
+/ Should in 8 cycles
 
-/
-/ Code Section
-/
-
-*0200			/ start at address 0200
+*0200	/program
 Main, 	cla cll		/ clear ac and l
 	spa cla		/ skip on pos then clear ac
 	cla cll cma  	/ should be skipped
@@ -16,5 +11,7 @@ Main, 	cla cll		/ clear ac and l
 	cla cll		/ clear ac and l
 	szl		/ skip on zero link
 	cla cll cma	/ should be skipped
+	skp		/ skip always
+	cla cll cma	/ should be skipped
 	hlt		/ halt
-$Main 			/ End of Program; Main is entry point
+$Main 

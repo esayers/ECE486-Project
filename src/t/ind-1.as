@@ -1,16 +1,12 @@
-/ tad.as
-/ test file for tad
+/ ind-1.as - Indirection test 1
+/ Should copy 01, 020, 0300 to memory starting at 0300
 
-/
-/ program
-/
-
-*010
+*010	/ Auto Increment
 AI,	0250
 *017
 AI2, 	0277
 
-*0200
+*0200	/ Program
 Main,	cla cll		/ clear ac and l
 Loop,	tad I AI	/ load
 	dca I AI2	/ store
@@ -18,11 +14,7 @@ Loop,	tad I AI	/ load
 	jmp Loop	/ loop
 	hlt		/ halt
 	
-/
-/ data
-/
-
-*250
+*250	/ Data
 A,	07775
  	01
 	020

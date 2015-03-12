@@ -1,12 +1,7 @@
-/ Program : m2-or3.as
-/ Desc: Tests group 2 or subgroup
-/ Should run 11 instructions in 11 cycles
+/ m2-or3.as - Test 3 of group 2 OR subgroup
+/ Should run in 11 cycles
 
-/
-/ Code Section
-/
-
-*0200			/ start at address 0200
+*0200	/ program
 Main, 	cla cll iac	/ clear ac and l then inc
 	sma sza snl cla	/ skip on all 3
 	cla cll cma  	/ should not be skipped
@@ -17,8 +12,5 @@ Main, 	cla cll iac	/ clear ac and l then inc
 	cma		/ complement ac
 	sma sza snl cla	/ skip on all 3
 	cla cll cma	/ should be skipped
-	cll cla cml	/ compliment link
-	sma sza snl cla / skip on all 3
-	cla cll cma	/ should be skipped
 	hlt		/ halt
-$Main 			/ End of Program; Main is entry point
+$Main 

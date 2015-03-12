@@ -1,5 +1,10 @@
-/ tad.as
-/ test file for tad
+/ tad.as - test file for tad
+/ -1 + 1 should result in 0 with a carry
+/ -1 - 1 should result in 07776 with a carry
+/ 03777 + 03777 should result in 07776 without a carry
+/ 04000 + 04000 should result in 0 with a carry
+/ 04000 + 03777 should result in 07777 without a carry
+/ It should run in 51 cycles
 
 *010	/ Auto Increment
 AI,	0277

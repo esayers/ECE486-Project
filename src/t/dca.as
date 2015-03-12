@@ -1,29 +1,23 @@
-/ tad.as
-/ test file for tad
+/ dca.as - test file for dca
+/ 01, 020, and 0300 should be stored starting at address 0300
+/ should run in 40 cycles
 
-/
-/ program
-/
 
-*010
+*010	/ Auto Increment Load
 AI,	0250
-*017
+*017	/ Auto Increment Store
 AI2, 	0277
 
-*0200
+*0200	/ Program
 Main,	cla cll		/ clear ac and l
 Loop,	tad I AI	/ load
 	dca I AI2	/ store
 	isz A		/ test
 	jmp Loop	/ loop
 	hlt		/ halt
-	
-/
-/ data
-/
 
-*250
-A,	07775
+*250	/ Data
+A,	07775 -3
  	01
 	020
 	0300
