@@ -1,7 +1,6 @@
-/* pdp8-simulator.cpp
- * Edward Sayers
- * ECE 486 Project
- */
+// pdp8-simulator.cpp
+// Edward Sayers
+// ECE 486: PDP-8 Instruction Set Simulator
 
 #include "pdp8-simulator.h"
 
@@ -13,15 +12,22 @@
 // Constructor for Simulator
 Pdp8::Simulator::Simulator()
 {
+    // Create memory
     memory = new Memory;
-    stats.clocks = 0;
+
+    // Zero out stats
+    stats.clocks = 0;       
     for (int i = 0; i < Sim::num_ops; ++i)
     {
         stats.ops[i] = 0;
     }
+
+    // Switchs, ac and l initialized to 0
     switches = 0;
     ac = 0;
     l = 0;
+
+    // Debug and pause off by default
     debug = false;
     pause = false;
 }
@@ -69,10 +75,13 @@ int Pdp8::Simulator::dump_memory(std::ostream& out) const
 // OUTPUT: None
 void Pdp8::Simulator::print_stats(std::ostream& out) const
 {
-    int insts = 0;
+    int insts = 0; // Instruction total
 
+    // Total instructions from each mnemonic
     for (int i = 0; i < Pdp8::Sim::num_ops; ++i)
         insts += stats.ops[i];
+
+    // Print statistics
     out << std::dec;
     out << "Clocks   : " << stats.clocks << std::endl;
     out << "AND Ops  : " << stats.ops[Pdp8::Sim::AND] << std::endl;
@@ -91,9 +100,11 @@ void Pdp8::Simulator::print_stats(std::ostream& out) const
 // OUTPUT: None
 void Pdp8::Simulator::start(unsigned short pc_start)
 {
-    bool halt;
-    pc = pc_start;
+    bool halt;      // halt condition
+    pc = pc_start;  // set pc to starting addess
 
+    // Process instructions until halt is encountered
+    // If debug is true, print before and after every instruction
     do
     {   
         print_debug();
@@ -135,14 +146,15 @@ void Pdp8::Simulator::set_switches(Pdp8::reg12 sw)
 // OUPTUP: instruction decoded in struct
 Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst, unsigned short pc)
 {
-    Pdp8::Sim::Inst rv;
+    Pdp8::Sim::Inst rv; // return value
 
-    rv.op = static_cast<Pdp8::Sim::Ops>(inst.to_ulong() >> 9);
-    rv.ind = inst[8];
-    rv.zero = inst[7];
-    rv.offset = inst.to_ulong() & 0x7Fu;
-    rv.micro = inst.to_ulong() & 0x1FF;
-    rv.page = pc >> 7;
+    // Seperate instruction into parts
+    rv.op       = static_cast<Pdp8::Sim::Ops>(inst.to_ulong() >> 9); // Op code
+    rv.ind      = inst[8];                  // indirect flag
+    rv.zero     = inst[7];                  // zero flag
+    rv.offset   = inst.to_ulong() & 0x7Fu;  // page offset
+    rv.micro    = inst.to_ulong() & 0x1FF;  // micro instructions
+    rv.page     = pc >> 7;                  // page
 
     return rv;
 }
@@ -152,74 +164,120 @@ Pdp8::Sim::Inst Pdp8::Simulator::decode(Pdp8::reg12 inst, unsigned short pc)
 // OUTPUT: True if not halted, false if halted
 bool Pdp8::Simulator::process_instruction()
 {
-    Pdp8::Sim::Inst inst = decode(memory->fetch(pc.to_ulong()), pc.to_ulong());
-    unsigned short  mar;
-    Pdp8::reg12     mbr;
-    std::bitset<13> lac;
-    bool            halt = false;
+    Pdp8::Sim::Inst inst;           // decoded instruction
+    unsigned short  mar;            // address buffer
+    Pdp8::reg12     mbr;            // data buffer
+    std::bitset<13> lac;            // l+ac for ac arithmetic
+    bool            halt = false;   // halt flag, defaults to start
 
-    stats.ops[inst.op] += 1;
-    pc = pc.to_ulong() + 1;
+    // Fetch and decode instruction
+    inst = decode(memory->fetch(pc.to_ulong()), pc.to_ulong());
 
+    stats.ops[inst.op] += 1;    // add to appropriate instruction count
+    pc = pc.to_ulong() + 1;     // increment pc
+
+    // Switch on op code
     switch (inst.op)
     {
     case (Pdp8::Sim::AND):
+        // calculate address and load value
         mar = get_address(inst);
         mbr = memory->load(mar);
+
+        // and ac with value from memory
         ac &= mbr;
+
+        // update stats
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::TAD):
+        // calculate address and load value
         mar = get_address(inst);
         mbr = memory->load(mar);
+
+        // Combine l and ac
         lac = ac.to_ulong();
         lac[12] = static_cast<unsigned int>(l);
+
+        // add value from memory to lac
         lac = lac.to_ulong() + mbr.to_ulong();
+
+        // update ac and l to reflect new value
         ac = lac.to_ulong() & 0xFFF;
         l = lac[12];
+
+        // update stats
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::ISZ):
+        // calculate address and load value
         mar = get_address(inst);
         mbr = memory->load(mar);
+
+        // increment and store
         mbr = mbr.to_ulong() + 1;
         memory->store(mar, mbr);
+
+        // increment pc if result was 0
         if (mbr.to_ulong() == 0)
         {
             pc = pc.to_ulong() + 1;
         }
+
+        // update stats
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::DCA):
+        // calculate address and store ac there
         mar = get_address(inst);
         memory->store(mar, ac);
+        
+        // clear ac
         ac = 0;
+
+        // update statse
         stats.clocks += 2;
         break;
     case (Pdp8::Sim::JMS):
+        // calculate address and store return value there
         mar = get_address(inst);
         memory->store(mar, pc);
+
+        // set pc to instruction after address
         pc = mar + 1;
+
+        // update statistics
         stats.clocks += 2; 
         break;
     case (Pdp8::Sim::JMP):
+        // calculate address
         mar = get_address(inst);
+
+        // set pc to jump target
         pc = mar;
+
+        // update stats
         stats.clocks += 1;
         break;
     case (Pdp8::Sim::IOT):
+        // Print message if IOT instruction is encountered
         std::cerr << std::setfill('0') << "0" << std::oct;
-        std::cerr << std::setw(4) << std::oct << pc.to_ulong() - 1 <<": IOT Instructions are not supported" << std::endl << std::dec;
+        std::cerr << std::setw(4) << std::oct << pc.to_ulong() - 1;
+        std::cerr << ": IOT Instructions are not supported";
+        std::cerr << std::endl << std::dec;
         break;
     case (Pdp8::Sim::OPR):
+        // handle micro opts in fuction
         halt = process_micro(inst.micro);
+
+        // update stats
         stats.clocks += 1;
         break;
     default:
         break;    
     }
     
-
+    // return halt value
     return halt;
 }
 
@@ -228,11 +286,11 @@ bool Pdp8::Simulator::process_instruction()
 // OUTPUT: True if halt, false otherwise
 bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
 {
-    bool halt = false;
+    bool halt = false; // halt value defaults to false
 
-    if (micro[8] == 0)
+    if (micro[8] == 0) // Group 1
     {
-        // Group 1
+        // set flags from instruction
         bool iac = micro[0];
         bool bsw = micro[1];
         bool ral = micro[2];
@@ -258,72 +316,69 @@ bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
         if (cml)
             l = ~l;
 
+
+        // combine l and ac 
+        std::bitset<13> lac = ac.to_ulong();
+        lac[12] = static_cast<unsigned int>(l);
+
         // Increment l/ac if iac bit set
         if (iac)
         {
-            std::bitset<13> lac = ac.to_ulong();
-            if (l)
-                lac[12] = 1;
-            else
-                lac[12] = 0;
-
+            // increment combined register
             lac = lac.to_ulong() + 1;
 
-            l = lac[12];
-            ac = lac.to_ulong() & 0xFFFu;
         }
 
-        std::bitset<13> lac = ac.to_ulong();
-        lac = ac.to_ulong();
-        if (l)
-            lac[12] = 1;
-        else
-            lac[12] = 0;
 
+        // handle rotations
         if (bsw)
         {
             if (ral && !rar)
             {
+                // rotate left 2
                 std::bitset<13> nlac = lac << 2;
                 nlac[1] = lac[12];
                 nlac[0] = lac[11];
                 
-                l = nlac[12];
-                ac = nlac.to_ulong() & 0xFFFu; 
+                lac = nlac;
             }
             else if (rar && !ral)
             {
+                // rotate right 2
                 std::bitset<13> nlac = lac >> 2;
                 nlac[12] = lac[1];
                 nlac[11] = lac[0];
-                
-                l = nlac[12];
-                ac = nlac.to_ulong() & 0xFFFu;
+
+                lac = nlac;
             }
         }
         else
         {
+            
             if (ral && !rar)
             {
+                // rotate left
                 std::bitset<13> nlac = lac << 1;
                 nlac[0] = lac[12];
                 
-                l = nlac[12];
-                ac = nlac.to_ulong() & 0xFFFu; 
+                lac = nlac;
             }
             else if (rar && !ral)
             {
+                // rotate right
                 std::bitset<13> nlac = lac >> 1;
                 nlac[12] = lac[0];
                 
-                l = nlac[12];
-                ac = nlac.to_ulong() & 0xFFFu;
+                lac = nlac;    
             }
         } 
+        // set l and ac from result
+        l = lac[12];
+        ac = lac.to_ulong() & 0xFFFu;
     }
-    else if (micro[0] == 0)
+    else if (micro[0] == 0) // Group 2
     {
-        // Group 2
+        // set flags from instruction
         bool hlt = micro[1];
         bool osr = micro[2];
         bool rev = micro[3];
@@ -331,7 +386,8 @@ bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
         bool sza = micro[5];
         bool sma = micro[6];
         bool cla = micro[7];
-        bool skip = false;
+
+        bool skip = false;  // skip flag
 
         // Skip if bit 8 is true and all conditions in first block  are true
         // Or, skip if any of the other conditions is true
@@ -374,11 +430,13 @@ bool Pdp8::Simulator::process_micro(Pdp8::reg9 micro)
             halt = true;
         
     }
-    else
+    else // Group 3
     {
-        // Group 3
+        // print message if a group 3 micro opt is encountered
         std::cerr << std::setfill('0') << "0" << std::oct;
-        std::cerr << std::setw(4) << pc.to_ulong() - 1 << ": Group 3 micro ops are not supported" << std::endl << std::dec;
+        std::cerr << std::setw(4) << pc.to_ulong() - 1;
+        std::cerr << ": Group 3 micro ops are not supported";
+        std::cerr << std::endl << std::dec;
     }
 
     return halt;
@@ -432,15 +490,20 @@ void Pdp8::Simulator::print_debug(void)
         return;
 
     std::cerr << std::setfill('0');
-    std::cerr << "PC: " << pc << " (0" << std::setw(4) << std::oct << pc.to_ulong() << ") ";
-    std::cerr << "AC: " << ac << " (0" << std::setw(4) << std::oct << ac.to_ulong() << ") ";
+    std::cerr << "PC: " << pc << " (0";
+    std::cerr << std::setw(4) << std::oct << pc.to_ulong() << ") ";
+    std::cerr << "AC: " << ac << " (0";
+    std::cerr << std::setw(4) << std::oct << ac.to_ulong() << ") ";
     std::cerr << "L: ";
+
     if (l)
         std::cerr << "1";
     else
         std::cerr << "0";
+
     std::cerr << std::dec << " Clock: " << stats.clocks;
 
+    // Handle pause
     if (pause)
         std::cin.get();
     else

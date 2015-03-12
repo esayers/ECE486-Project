@@ -1,14 +1,10 @@
 / tad.as
 / test file for tad
 
-/
-/ program
-/
-
-*010
+*010	/ Auto Increment
 AI,	0277
 
-*0200
+*0200	/ Program
 Main,	cla cll		/ clear ac and l
 	tad A		
 	tad B		/ -1 + 1
@@ -30,12 +26,8 @@ Main,	cla cll		/ clear ac and l
 	tad D		/ smallest + largest
 	dca I AI	/ store
 	hlt
-	
-/
-/ data
-/
 
-*250
+*250	/ Data
 A, 07777		/ -1
 B, 01			/ 1
 C, 04000		/ smallest negative

@@ -1,14 +1,10 @@
-/ tad.as
-/ test file for tad
-
-/
-/ program
-/
+/ and.as
+/ test file for and
 
 *010
 AI,	0277
 
-*0200
+*0200	/ Program
 Main,	cla cll		/ clear ac and l
 	and A		/ And with zero
 	dca I AI	/ save
@@ -20,11 +16,7 @@ Main,	cla cll		/ clear ac and l
 	dca I AI	/ save
 	hlt
 	
-/
-/ data
-/
-
-*250
+*250	/ Data
 A, 	05252
 B,	02525
 $Main

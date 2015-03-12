@@ -1,8 +1,6 @@
-/*  pdp8-memory.cpp
- *
- *  Edward Sayers
- * ECE 486 Project
- */
+// pdp8-memory.cpp
+// Edward Sayers
+// ECE 486: PDP-8 Instruction Set Simulator
 
 #include "pdp8-memory.h"
 
@@ -18,7 +16,6 @@ Pdp8::Word::Word()
 }
 
 // Constructor for class Memory
-// INPUT: number of memory locations to create
 Pdp8::Memory::Memory() : mem_size(Pdp8::mem::size)
 {
     mem = new Pdp8::Word[mem_size];

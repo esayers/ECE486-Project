@@ -1,3 +1,7 @@
+// pdp8-main.cpp
+// Edward Sayers
+// ECE 486: PDP-8 Instruction Set Simulator
+
 #include <iostream>
 #include <unistd.h>
 #include <cctype>
@@ -75,6 +79,8 @@ int main (int argc, char **argv)
     if (oflg && vflg)
     {
         std::cerr << "Options -o and -v are mutually exclusive" << std::endl;
+        printHelp(argv[0]);
+        return 0;
     }
     else if (oflg | vflg)
     {

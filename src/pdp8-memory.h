@@ -1,7 +1,6 @@
-/*  pdp8-memory.h
- *  Edward Sayers
- *  ECE 486 Project
- */
+// pdp8-memory.h
+// Edward Sayers
+// ECE 486: PDP-8 Instruction Set Simulator
 
 
 #ifndef PDP8_MEMORY_H
@@ -22,7 +21,7 @@ namespace Pdp8
     namespace mem
     {
         const int size = 4096;
-        const std::string default_logfile = "mem.dmp";
+        const std::string default_logfile = "tracefile";
 
         enum log_type
         {
