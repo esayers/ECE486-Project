@@ -105,6 +105,9 @@ void Pdp8::Simulator::start(unsigned short pc_start)
 
     // Process instructions until halt is encountered
     // If debug is true, print before and after every instruction
+
+    if (debug)
+        std::cout << std::endl;
     do
     {   
         print_debug();

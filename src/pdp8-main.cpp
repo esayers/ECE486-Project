@@ -19,6 +19,7 @@ int main (int argc, char **argv)
     bool oflg = false;
     bool tflg = false;
     bool sflg = false;
+    bool iflg = false;
 
     std::string filename;
     std::string tracefile;
@@ -27,7 +28,7 @@ int main (int argc, char **argv)
 
     // Process input arguments
     opterr = 0; // Turn off option error messages
-    while ((c = getopt(argc, argv, "v:o:t:s:dp")) != -1)
+    while ((c = getopt(argc, argv, "v:o:t:s:dpi")) != -1)
     {
         switch(c)
         {
@@ -51,6 +52,9 @@ int main (int argc, char **argv)
             break;
         case 'p':
             sim.set_pause(true);
+            break;
+        case 'i':
+            iflg = true;
             break;
         case '?': // Invalid argument
             switch (optopt)
@@ -139,6 +143,12 @@ int main (int argc, char **argv)
         sim.set_switches(sw);
     }
 
+    if (iflg)
+    {
+        std::cout << std::endl << "Inital memory contents:" << std::endl;
+        sim.dump_memory();
+    }
+
     sim.start();
     std::cout << std::endl << "Final memory contents:" << std::endl;
     sim.dump_memory();
@@ -158,4 +168,5 @@ void printHelp(std::string filename)
     std::cerr << "-s <oct number>   Sets the switches to the value in number" << std::endl;
     std::cerr << "-d                Print debug messages" << std::endl;
     std::cerr << "-p                Pause between debug messages" << std::endl;
+    std::cerr << "-i                Print initial memory contents" << std::endl;
 }
