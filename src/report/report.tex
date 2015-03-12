@@ -1,0 +1,129 @@
+\documentclass[12pt]{article}
+\usepackage{fancyhdr}
+\usepackage[cm]{fullpage}
+\usepackage{lastpage}
+\usepackage{calc}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{color}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\newenvironment{lproof}
+{ \begin{tabular}{L{1cm}L{1cm}L{8cm}L{3cm}}}
+{ \end{tabular}}
+
+\newenvironment{lproofh}
+{ \begin{tabular}{L{1cm}L{12cm}}}
+{ \end{tabular}}
+
+\newcommand{\sand}{\ \&\ }
+\headsep=0.25in
+\setcounter{secnumdepth}{3}
+
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Edward Sayers}
+\rhead{12 March 2015}
+\chead{ECE 486: PDP-8 Project}
+\rfoot{\thepage /\pageref{LastPage}}
+
+\newcommand{\hmwkTitle}{PDP-8 Instruction Set Simulator} % Assignment title
+\newcommand{\hmwkDueDate}{March\ 12,\ 2015} % Due date
+\newcommand{\hmwkClass}{ECE\ 486} % Course/class
+\newcommand{\hmwkAuthorName}{Edward Sayers} % Your name
+
+\title{
+\vspace{2in}
+\textmd{\textbf{\hmwkClass:\ \hmwkTitle}}\\
+\normalsize\vspace{0.1in}\small{\hmwkDueDate}\\
+\vspace{3in}
+\date{}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\begin{document}
+\maketitle
+\newpage
+\section{Introduction}
+The goal of this project was to design a program to simulate the instruction set architecture of a PDP-8.  All PDP-8 instructions are supported except the i/o instructions which are treated as no ops. Byte swap (BSW) and EAE instructions are also not supported because they were not found in the standard version of the PDP-8. The front panel switches can be set at run time via command line argument.
+
+The program is written in C++ and compiled using g++ with the c++11 standard. The simulator is written in three main sections. The first two sections handle the simulation. One manages the memory and other related functions and the other handles simulation of the op codes. The last section starts the simulation and handles command line arguments.  
+
+The simulation is started from the command line and requires a memory file be specified. It accepts memory files in either hexadecimal or octal format. Exactly one of these options must be chosen or an error will be displayed. In addition to this there are options to change the trace file name and print debugging information. Starting the simulator with no options, or with incorrect options, will display help information.
+
+\section{Design}
+\subsection{Memory}
+The first section of the simulator to be designed was the memory system. The memory consists of an array of 4096 12-bit words. Each word is stored as a structure containing the 12-bit word as a bitset and an access tag. The access tag is initialized to false but will be set to true when its memory location is accessed. Tagging the words this way allows memory to be printed without printing out untouched sections of memory. A public method was written to print the memory to a chosen stream. 
+
+Loading of the memory file is done by one of two methods depending of the format to be loaded. Both functions operate in a similar manner, just differing in how they interpret the memory file. The memory information taken from the file is stored into the memory array using a private method that does not log the access.
+
+Logging of memory transactions is done through the load, store and fetch public methods. These functions utilize private methods to load and store data but also log the transaction with the appropriate type. These three methods are the only public methods that can access memory once loaded from file, so there is no danger of unlogged transactions occurring.
+
+\subsection{Simulation}
+The simulation takes place in two steps. First, the instruction is fetched and decoded, and then it is processed depending on its op code. Fetching the instruction is done by the memory section and the instruction is given to the decode function. The decode function takes the individual elements of the instruction apart and stores them in a structure which is passed back. The structure contains the op code, indirect flag, zero flag, offset, micro instruction, and the page the instruction was fetched from. This information is used by the next part to execute the instruction.
+
+Each op code is handled by a different section of code via a switch statement. Micro ops are handled by a separate function. 
+
+The op codes which reference memory first calculate the effective address of the target. This is done by a function which takes the instruction data structure and returns the address. Indirection and auto incrementation is handled by this function and the statistics are updated if necessary. After the address is calculated, the data is loaded and/or stored as necessary and state of the object is updated to reflect the proper execution of the op code. 
+
+\subsection{Interface}
+The interface processes command line flags using the getopt function. After processing all flags and updating the simulator object as necessary, the simulation is started. The simulator runs to completion and then the final contents of memory and the statistics are printed.
+
+\section{Testing}
+Testing was accomplished by designing PDP-8 assembly programs to target specific functionality and ensure proper operation. Short programs were written for each op code and for other portions of the program that required testing.
+
+\subsection{AND}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/and.lst}
+\newpage
+\subsection{TAD}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/tad.lst}
+\subsection{ISZ}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/isz.lst}
+\newpage
+\subsection{DCA}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/dca.lst}
+\subsection{JMS}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/jms.lst}
+\newpage
+\subsection{JMP}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/jmp.lst}
+
+\subsection{Micro ops}
+\subsubsection{Group 1}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m1.lst}
+\subsubsection{Group 2 AND Subgroup}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-and1.lst}
+\newpage
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-and2.lst}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-and3.lst}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-and4.lst}
+\subsubsection{Group 2 OR Subgroup}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-or1.lst}
+\newpage
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-or2.lst}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-or3.lst}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-or4.lst}
+\subsubsection{Group 2 OSR}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/m2-osr.lst}
+\newpage
+\subsection{Indirection}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/ind-1.lst}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/ind-2.lst}
+\subsection{Tracefile}
+\lstinputlisting[breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../t/tf.lst}
+\newpage
+\section{Code}
+\lstinputlisting[language=C++, breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../pdp8-main.cpp}
+\newpage
+\lstinputlisting[language=C++, breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../pdp8-memory.h}
+\newpage
+\lstinputlisting[language=C++, breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../pdp8-memory.cpp}
+\newpage
+\lstinputlisting[language=C++, breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../pdp8-simulator.h}
+\newpage
+\lstinputlisting[language=C++, breaklines=true, showstringspaces = false, basicstyle=\scriptsize]{../pdp8-simulator.cpp}
+\end{document}
